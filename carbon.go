@@ -18,26 +18,24 @@ type Location = time.Location
 type Duration = time.Duration
 
 // Carbon defines a Carbon struct.
-// 定义 Carbon 结构体
 type Carbon struct {
-	isEmpty       bool
-	currentLayout string
 	time          StdTime
 	weekStartsAt  Weekday
 	weekendDays   []Weekday
 	loc           *Location
 	lang          *Language
+	currentLayout string
+	isEmpty       bool
 	Error         error
 }
 
 // NewCarbon returns a new Carbon instance.
-// 返回 Carbon 实例
 func NewCarbon(stdTime ...StdTime) *Carbon {
 	c := new(Carbon)
 	c.lang = NewLanguage().SetLocale(DefaultLocale)
-	c.currentLayout = DefaultLayout
 	c.weekStartsAt = DefaultWeekStartsAt
 	c.weekendDays = DefaultWeekendDays
+	c.currentLayout = DefaultLayout
 	if len(stdTime) > 0 {
 		c.time = stdTime[0]
 		c.loc = c.time.Location()
@@ -47,20 +45,19 @@ func NewCarbon(stdTime ...StdTime) *Carbon {
 	return c
 }
 
-// Copy returns a new copy of the current Carbon instance
-// 复制 Carbon 实例
+// Copy returns a copy of the Carbon instance.
 func (c *Carbon) Copy() *Carbon {
 	if c == nil {
 		return nil
 	}
 	return &Carbon{
-		isEmpty:       c.isEmpty,
-		currentLayout: c.currentLayout,
 		time:          time.Date(c.Year(), time.Month(c.Month()), c.Day(), c.Hour(), c.Minute(), c.Second(), c.Nanosecond(), c.loc),
 		weekStartsAt:  c.weekStartsAt,
 		weekendDays:   c.weekendDays,
 		loc:           c.loc,
 		lang:          c.lang.Copy(),
+		currentLayout: c.currentLayout,
+		isEmpty:       c.isEmpty,
 		Error:         c.Error,
 	}
 }

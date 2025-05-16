@@ -22,7 +22,9 @@ func (s *CarbonSuite) TestNewCarbon() {
 	t2, _ := time.ParseInLocation(DateTimeLayout, "2020-08-05 13:14:15", loc)
 
 	s.Run("zero carbon", func() {
-		s.True(NewCarbon().IsZero())
+		c := NewCarbon()
+		s.False(c.HasError())
+		s.True(c.IsZero())
 	})
 
 	s.Run("valid carbon", func() {

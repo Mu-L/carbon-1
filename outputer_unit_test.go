@@ -81,16 +81,6 @@ func (s *OutputerSuite) TestCarbon_ToMonthString() {
 		s.Empty(Parse("xxx").ToMonthString())
 	})
 
-	s.Run("error resources", func() {
-		lang := NewLanguage()
-		resources := map[string]string{
-			"months": "xxx",
-		}
-		lang.SetResources(resources)
-		c := Parse("2020-01-05").SetLanguage(lang)
-		s.Empty(c.ToMonthString())
-	})
-
 	s.Run("valid carbon", func() {
 		s.Equal(January.String(), Parse("2020-01-05").ToMonthString())
 		s.Equal(February.String(), Parse("2020-02-05").ToMonthString())
@@ -104,6 +94,22 @@ func (s *OutputerSuite) TestCarbon_ToMonthString() {
 		s.Equal(October.String(), Parse("2020-10-05").ToMonthString())
 		s.Equal(November.String(), Parse("2020-11-05").ToMonthString())
 		s.Equal(December.String(), Parse("2020-12-05").ToMonthString(PRC))
+	})
+
+	s.Run("empty resources", func() {
+		lang := NewLanguage()
+		lang.SetResources(map[string]string{})
+		c := Parse("2020-01-05").SetLanguage(lang)
+		s.Empty(c.ToMonthString())
+	})
+
+	s.Run("error resources", func() {
+		lang := NewLanguage()
+		lang.SetResources(map[string]string{
+			"months": "xxx",
+		})
+		c := Parse("2020-01-05").SetLanguage(lang)
+		s.Empty(c.ToMonthString())
 	})
 }
 
@@ -125,16 +131,6 @@ func (s *OutputerSuite) TestCarbon_ToShortMonthString() {
 		s.Empty(Parse("xxx").ToShortMonthString())
 	})
 
-	s.Run("error resources", func() {
-		lang := NewLanguage()
-		resources := map[string]string{
-			"months": "xxx",
-		}
-		lang.SetResources(resources)
-		c := Parse("2020-01-05").SetLanguage(lang)
-		s.Empty(c.ToShortMonthString())
-	})
-
 	s.Run("valid carbon", func() {
 		s.Equal("Jan", Parse("2020-01-05").ToShortMonthString())
 		s.Equal("Feb", Parse("2020-02-05").ToShortMonthString())
@@ -148,6 +144,22 @@ func (s *OutputerSuite) TestCarbon_ToShortMonthString() {
 		s.Equal("Oct", Parse("2020-10-05").ToShortMonthString())
 		s.Equal("Nov", Parse("2020-11-05").ToShortMonthString())
 		s.Equal("Dec", Parse("2020-12-05").ToShortMonthString(PRC))
+	})
+
+	s.Run("empty resources", func() {
+		lang := NewLanguage()
+		lang.SetResources(map[string]string{})
+		c := Parse("2020-01-05").SetLanguage(lang)
+		s.Empty(c.ToShortMonthString())
+	})
+
+	s.Run("error resources", func() {
+		lang := NewLanguage()
+		lang.SetResources(map[string]string{
+			"months": "xxx",
+		})
+		c := Parse("2020-01-05").SetLanguage(lang)
+		s.Empty(c.ToShortMonthString())
 	})
 }
 
@@ -169,16 +181,6 @@ func (s *OutputerSuite) TestCarbon_ToWeekString() {
 		s.Empty(Parse("xxx").ToWeekString())
 	})
 
-	s.Run("error resources", func() {
-		lang := NewLanguage()
-		resources := map[string]string{
-			"weeks": "xxx",
-		}
-		lang.SetResources(resources)
-		c := Parse("2020-01-05").SetLanguage(lang)
-		s.Empty(c.ToWeekString())
-	})
-
 	s.Run("valid carbon", func() {
 		s.Equal(Saturday.String(), Parse("2020-08-01").ToWeekString())
 		s.Equal(Sunday.String(), Parse("2020-08-02").ToWeekString())
@@ -187,6 +189,22 @@ func (s *OutputerSuite) TestCarbon_ToWeekString() {
 		s.Equal(Wednesday.String(), Parse("2020-08-05").ToWeekString())
 		s.Equal(Thursday.String(), Parse("2020-08-06").ToWeekString())
 		s.Equal(Friday.String(), Parse("2020-08-07").ToWeekString(PRC))
+	})
+
+	s.Run("empty resources", func() {
+		lang := NewLanguage()
+		lang.SetResources(map[string]string{})
+		c := Parse("2020-01-05").SetLanguage(lang)
+		s.Empty(c.ToWeekString())
+	})
+
+	s.Run("error resources", func() {
+		lang := NewLanguage()
+		lang.SetResources(map[string]string{
+			"weeks": "xxx",
+		})
+		c := Parse("2020-01-05").SetLanguage(lang)
+		s.Empty(c.ToWeekString())
 	})
 }
 
@@ -208,16 +226,6 @@ func (s *OutputerSuite) TestCarbon_ToShortWeekString() {
 		s.Empty(Parse("xxx").ToShortWeekString())
 	})
 
-	s.Run("error resources", func() {
-		lang := NewLanguage()
-		resources := map[string]string{
-			"short_weeks": "xxx",
-		}
-		lang.SetResources(resources)
-		c := Parse("2020-01-05").SetLanguage(lang)
-		s.Empty(c.ToShortWeekString())
-	})
-
 	s.Run("valid carbon", func() {
 		s.Equal("Sat", Parse("2020-08-01").ToShortWeekString())
 		s.Equal("Sun", Parse("2020-08-02").ToShortWeekString())
@@ -226,6 +234,22 @@ func (s *OutputerSuite) TestCarbon_ToShortWeekString() {
 		s.Equal("Wed", Parse("2020-08-05").ToShortWeekString())
 		s.Equal("Thu", Parse("2020-08-06").ToShortWeekString())
 		s.Equal("Fri", Parse("2020-08-07").ToShortWeekString(PRC))
+	})
+
+	s.Run("empty resources", func() {
+		lang := NewLanguage()
+		lang.SetResources(map[string]string{})
+		c := Parse("2020-01-05").SetLanguage(lang)
+		s.Empty(c.ToShortWeekString())
+	})
+
+	s.Run("error resources", func() {
+		lang := NewLanguage()
+		lang.SetResources(map[string]string{
+			"short_weeks": "xxx",
+		})
+		c := Parse("2020-01-05").SetLanguage(lang)
+		s.Empty(c.ToShortWeekString())
 	})
 }
 

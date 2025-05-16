@@ -3,7 +3,6 @@ package carbon
 import "sync"
 
 // FrozenNow defines a FrozenNow struct.
-// 定义 FrozenNow 结构体
 type FrozenNow struct {
 	isFrozen bool
 	testNow  *Carbon
@@ -15,7 +14,6 @@ var frozenNow = &FrozenNow{
 }
 
 // SetTestNow sets a test Carbon instance for now.
-// 设置当前测试时间
 func SetTestNow(c *Carbon) {
 	frozenNow.rw.Lock()
 	defer frozenNow.rw.Unlock()
@@ -24,15 +22,14 @@ func SetTestNow(c *Carbon) {
 	frozenNow.testNow = c
 }
 
-// Deprecated: it will be removed in the future, use ClearTestNow instead.
 // CleanTestNow clears the test Carbon instance for now.
-// 清除当前测试时间
+//
+// Deprecated: it will be removed in the future, use ClearTestNow instead.
 func CleanTestNow() {
 	ClearTestNow()
 }
 
 // ClearTestNow clears the test Carbon instance for now.
-// 清除当前测试时间
 func ClearTestNow() {
 	frozenNow.rw.Lock()
 	defer frozenNow.rw.Unlock()
@@ -41,7 +38,6 @@ func ClearTestNow() {
 }
 
 // IsTestNow reports whether is testing time.
-// 是否是测试时间
 func IsTestNow() bool {
 	frozenNow.rw.Lock()
 	defer frozenNow.rw.Unlock()

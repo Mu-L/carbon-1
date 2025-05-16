@@ -1,4 +1,4 @@
-package tests
+package xorm
 
 import (
 	"encoding/json"
@@ -20,18 +20,22 @@ func (s *SQLiteSuite) SetupSuite() {
 	carbon.SetTimezone(carbon.PRC)
 	carbon.SetTestNow(carbon.Parse("2020-08-05 13:14:15"))
 	db = connect(driverSQLite)
-	if err := db.AutoMigrate(&SQLiteModel1{}); err != nil {
+	if err = db.Sync(&SQLiteModel1{}); err != nil {
 		panic(err)
 	}
-	if err := db.AutoMigrate(&SQLiteModel2{}); err != nil {
+	if err = db.Sync(&SQLiteModel2{}); err != nil {
 		panic(err)
 	}
 }
 
 func (s *SQLiteSuite) TearDownSuite() {
 	carbon.ClearTestNow()
-	db.Unscoped().Where("1 = 1").Delete(&SQLiteModel1{})
-	db.Unscoped().Where("1 = 1").Delete(&SQLiteModel2{})
+	if _, err = db.Unscoped().Where("1 = 1").Delete(SQLiteModel1{}); err != nil {
+		panic(err)
+	}
+	if _, err = db.Unscoped().Where("1 = 1").Delete(SQLiteModel1{}); err != nil {
+		panic(err)
+	}
 }
 
 func (s *SQLiteSuite) TestCurd1() {
@@ -39,20 +43,21 @@ func (s *SQLiteSuite) TestCurd1() {
 		var model1 SQLiteModel1
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
-			panic(err)
-		}
+		_, err = db.Insert(model1)
+		s.Nil(err)
 
 		// read
 		var model2 SQLiteModel1
-		db.Last(&model2)
+		_, err = db.Desc("id").Get(&model2)
+		s.Nil(err)
 
 		data1, err1 := json.Marshal(&model2)
 		s.Nil(err1)
 		s.Equal(`{"carbon":null,"date":null,"time":null,"date_time":null,"rfc3339_layout":null,"iso8601_format":null,"timestamp":null}`, string(data1))
 
 		// delete
-		db.Delete(&model2)
+		_, err = db.Delete(model2)
+		s.Nil(err)
 	})
 
 	s.Run("nil carbon", func() {
@@ -71,20 +76,21 @@ func (s *SQLiteSuite) TestCurd1() {
 		model1.Timestamp = *carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
-			panic(err)
-		}
+		_, err = db.Insert(model1)
+		s.Nil(err)
 
 		// read
 		var model2 SQLiteModel1
-		db.Last(&model2)
+		_, err = db.Desc("id").Get(&model2)
+		s.Nil(err)
 
 		data1, err1 := json.Marshal(&model2)
 		s.Nil(err1)
 		s.Equal(`{"carbon":null,"date":null,"time":null,"date_time":null,"rfc3339_layout":null,"iso8601_format":null,"timestamp":null}`, string(data1))
 
 		// delete
-		db.Delete(&model2)
+		_, err = db.Delete(model2)
+		s.Nil(err)
 	})
 
 	s.Run("zero carbon", func() {
@@ -104,20 +110,21 @@ func (s *SQLiteSuite) TestCurd1() {
 		model1.Timestamp = *carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
-			panic(err)
-		}
+		_, err = db.Insert(model1)
+		s.Nil(err)
 
 		// read
 		var model2 SQLiteModel1
-		db.Last(&model2)
+		_, err = db.Desc("id").Get(&model2)
+		s.Nil(err)
 
 		data1, err1 := json.Marshal(&model2)
 		s.Nil(err1)
 		s.Equal(`{"carbon":null,"date":null,"time":null,"date_time":null,"rfc3339_layout":null,"iso8601_format":null,"timestamp":null}`, string(data1))
 
 		// delete
-		db.Delete(&model2)
+		_, err = db.Delete(model2)
+		s.Nil(err)
 	})
 
 	s.Run("empty carbon", func() {
@@ -137,20 +144,21 @@ func (s *SQLiteSuite) TestCurd1() {
 		model1.Timestamp = *carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
-			panic(err)
-		}
+		_, err = db.Insert(model1)
+		s.Nil(err)
 
 		// read
 		var model2 SQLiteModel1
-		db.Last(&model2)
+		_, err = db.Desc("id").Get(&model2)
+		s.Nil(err)
 
 		data1, err1 := json.Marshal(&model2)
 		s.Nil(err1)
 		s.Equal(`{"carbon":null,"date":null,"time":null,"date_time":null,"rfc3339_layout":null,"iso8601_format":null,"timestamp":null}`, string(data1))
 
 		// delete
-		db.Delete(&model2)
+		_, err = db.Delete(model2)
+		s.Nil(err)
 	})
 
 	s.Run("valid carbon", func() {
@@ -170,13 +178,13 @@ func (s *SQLiteSuite) TestCurd1() {
 		model1.Timestamp = *carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
-			panic(err)
-		}
+		_, err = db.Insert(model1)
+		s.Nil(err)
 
 		// read
 		var model2 SQLiteModel1
-		db.Last(&model2)
+		_, err = db.Desc("id").Get(&model2)
+		s.Nil(err)
 
 		data1, err1 := json.Marshal(&model2)
 		s.Nil(err1)
@@ -196,14 +204,16 @@ func (s *SQLiteSuite) TestCurd1() {
 		model2.Timestamp = *carbon.NewTimestamp(c)
 
 		// update
-		db.Save(&model2)
+		_, err = db.Update(model2)
+		s.Nil(err)
 
 		data2, err2 := json.Marshal(&model2)
 		s.Nil(err2)
 		s.Equal(`{"carbon":"2020-08-06 13:14:15","date":"2020-08-06","time":"13:14:15","date_time":"2020-08-06 13:14:15","rfc3339_layout":"2020-08-06T13:14:15+08:00","iso8601_format":"2020-08-06T13:14:15+08:00","timestamp":1596690855}`, string(data2))
 
 		// delete
-		db.Delete(&model2)
+		_, err = db.Delete(model2)
+		s.Nil(err)
 	})
 }
 
@@ -212,20 +222,21 @@ func (s *SQLiteSuite) TestCurd2() {
 		var model1 SQLiteModel2
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
-			panic(err)
-		}
+		_, err = db.Insert(model1)
+		s.Nil(err)
 
 		// read
 		var model2 SQLiteModel2
-		db.Last(&model2)
+		_, err = db.Desc("id").Get(&model2)
+		s.Nil(err)
 
 		data1, err1 := json.Marshal(&model2)
 		s.Nil(err1)
 		s.Equal(`{"carbon":null,"date":null,"time":null,"date_time":null,"rfc3339_layout":null,"iso8601_format":null,"timestamp":null}`, string(data1))
 
 		// delete
-		db.Delete(&model2)
+		_, err = db.Delete(model2)
+		s.Nil(err)
 	})
 
 	s.Run("nil carbon", func() {
@@ -246,20 +257,21 @@ func (s *SQLiteSuite) TestCurd2() {
 		model1.Timestamp = carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
-			panic(err)
-		}
+		_, err = db.Insert(model1)
+		s.Nil(err)
 
 		// read
 		var model2 SQLiteModel2
-		db.Last(&model2)
+		_, err = db.Desc("id").Get(&model2)
+		s.Nil(err)
 
 		data1, err1 := json.Marshal(&model2)
 		s.Nil(err1)
 		s.Equal(`{"carbon":null,"date":null,"time":null,"date_time":null,"rfc3339_layout":null,"iso8601_format":null,"timestamp":null}`, string(data1))
 
 		// delete
-		db.Delete(&model2)
+		_, err = db.Delete(model2)
+		s.Nil(err)
 	})
 
 	s.Run("zero carbon", func() {
@@ -279,20 +291,21 @@ func (s *SQLiteSuite) TestCurd2() {
 		model1.Timestamp = carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
-			panic(err)
-		}
+		_, err = db.Insert(model1)
+		s.Nil(err)
 
 		// read
 		var model2 SQLiteModel2
-		db.Last(&model2)
+		_, err = db.Desc("id").Get(&model2)
+		s.Nil(err)
 
 		data1, err1 := json.Marshal(&model2)
 		s.Nil(err1)
 		s.Equal(`{"carbon":null,"date":null,"time":null,"date_time":null,"rfc3339_layout":null,"iso8601_format":null,"timestamp":null}`, string(data1))
 
 		// delete
-		db.Delete(&model2)
+		_, err = db.Delete(model2)
+		s.Nil(err)
 	})
 
 	s.Run("empty carbon", func() {
@@ -312,20 +325,21 @@ func (s *SQLiteSuite) TestCurd2() {
 		model1.Timestamp = carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
-			panic(err)
-		}
+		_, err = db.Insert(model1)
+		s.Nil(err)
 
 		// read
 		var model2 SQLiteModel2
-		db.Last(&model2)
+		_, err = db.Desc("id").Get(&model2)
+		s.Nil(err)
 
 		data1, err1 := json.Marshal(&model2)
 		s.Nil(err1)
 		s.Equal(`{"carbon":null,"date":null,"time":null,"date_time":null,"rfc3339_layout":null,"iso8601_format":null,"timestamp":null}`, string(data1))
 
 		// delete
-		db.Delete(&model2)
+		_, err = db.Delete(model2)
+		s.Nil(err)
 	})
 
 	s.Run("valid carbon", func() {
@@ -345,13 +359,14 @@ func (s *SQLiteSuite) TestCurd2() {
 		model1.Timestamp = carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
-			panic(err)
-		}
+		_, err = db.Insert(model1)
+		s.Nil(err)
 
 		// read
 		var model2 SQLiteModel2
-		db.Last(&model2)
+		_, err = db.Desc("id").Get(&model2)
+		s.Nil(err)
+
 		data1, err1 := json.Marshal(&model2)
 		s.Nil(err1)
 		s.Equal(`{"carbon":"2020-08-05 13:14:15","date":"2020-08-05","time":"13:14:15","date_time":"2020-08-05 13:14:15","rfc3339_layout":"2020-08-05T13:14:15+08:00","iso8601_format":"2020-08-05T13:14:15+08:00","timestamp":1596604455}`, string(data1))
@@ -370,13 +385,15 @@ func (s *SQLiteSuite) TestCurd2() {
 		model2.Timestamp = carbon.NewTimestamp(c)
 
 		// update
-		db.Save(&model2)
+		_, err = db.Update(model2)
+		s.Nil(err)
 
 		data2, err2 := json.Marshal(&model2)
 		s.Nil(err2)
 		s.Equal(`{"carbon":"2020-08-06 13:14:15","date":"2020-08-06","time":"13:14:15","date_time":"2020-08-06 13:14:15","rfc3339_layout":"2020-08-06T13:14:15+08:00","iso8601_format":"2020-08-06T13:14:15+08:00","timestamp":1596690855}`, string(data2))
 
 		// delete
-		db.Delete(&model2)
+		_, err = db.Delete(model2)
+		s.Nil(err)
 	})
 }
