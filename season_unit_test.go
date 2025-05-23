@@ -35,10 +35,9 @@ func (s *SeasonSuite) TestSeason() {
 
 	s.Run("error resources", func() {
 		lang := NewLanguage()
-		resources := map[string]string{
+		lang.SetResources(map[string]string{
 			"seasons": "xxx",
-		}
-		lang.SetResources(resources)
+		})
 		c := Now().SetLanguage(lang)
 		s.Empty(c.Season())
 	})

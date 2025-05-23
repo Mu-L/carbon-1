@@ -25,7 +25,7 @@ Carbon は [awesome-go](https://github.com/avelino/awesome-go#date-and-time "awe
 
 #### インストール
 
-##### go version >= 1.18
+##### go version >= 1.21
 
 ```go
 // github から使う
@@ -256,14 +256,8 @@ carbon.ParseByLayout("今天是 2020年08月05日13时14分15秒", "今天是 20
 carbon.ParseByLayout("2020-08-05 13:14:15", "2006-01-02 15:04:05", carbon.Tokyo).ToDateTimeString() // 2020-08-05 14:14:15
 ```
 
-##### 複数のファジィレイアウトテンプレートによって時間文字列を `Carbon` インスタンスに解析する
-
-```go
-carbon.ParseByLayouts("2020|08|05 13|14|15", []string{"2006|01|02 15|04|05", "2006|1|2 3|4|5"}).ToDateTimeString() // 2020-08-05 13:14:15
-carbon.ParseByLayouts("2020|08|05 13|14|15", []string{"2006|01|02 15|04|05", "2006|1|2 3|4|5"}).CurrentLayout() // 2006|01|02 15|04|05
-```
-
 ##### 確認されたフォーマットテンプレートによって時間文字列を `Carbon` インスタンスに解析する
+> 注：使用している文字がフォームテンプレートと競合している場合は、エスケープ文字 "\\" を使用して文字をエスケープします
 
 ```go
 carbon.ParseByFormat("2020|08|05 13|14|15", "Y|m|d H|i|s").ToDateTimeString() // 2020-08-05 13:14:15
@@ -271,7 +265,16 @@ carbon.ParseByFormat("It is 2020-08-05 13:14:15", "\\I\\t \\i\\s Y-m-d H:i:s").T
 carbon.ParseByFormat("今天是 2020年08月05日13时14分15秒", "今天是 Y年m月d日H时i分s秒").ToDateTimeString() // 2020-08-05 13:14:15
 ```
 
+##### 複数のファジィレイアウトテンプレートによって時間文字列を `Carbon` インスタンスに解析する
+> 注：タイムスタンプ `レイアウトテンプレート` による解析はサポートされていません
+
+```go
+carbon.ParseByLayouts("2020|08|05 13|14|15", []string{"2006|01|02 15|04|05", "2006|1|2 3|4|5"}).ToDateTimeString() // 2020-08-05 13:14:15
+carbon.ParseByLayouts("2020|08|05 13|14|15", []string{"2006|01|02 15|04|05", "2006|1|2 3|4|5"}).CurrentLayout() // 2006|01|02 15|04|05
+```
+
 ##### 複数のファジィフォーマットテンプレートによって時間文字列を `Carbon` インスタンスに解析する
+> 注：この方法では、タイムスタンプ `フォーマットテンプレート` による解析はサポートされていません
 
 ```go
 carbon.ParseByFormats("2020|08|05 13|14|15", []string{"Y|m|d H|i|s", "y|m|d h|i|s"}).ToDateTimeString() // 2020-08-05 13:14:15
@@ -587,12 +590,12 @@ carbon.Now().SubYearsNoOverflow(1).DiffAbsInString(carbon.Now()) // 1 year
 // 継続時間差
 now := carbon.Now()
 now.DiffInDuration(now).String() // 0s
-now.AddHour().DiffInDuration(now).String() // 1h0m0s
-now.SubHour().DiffInDuration(now).String() // -1h0m0s
+now.Copy().AddHour().DiffInDuration(now).String() // 1h0m0s
+now.Copy().SubHour().DiffInDuration(now).String() // -1h0m0s
 // 継続時間差（絶対値）
 now.DiffAbsInDuration(now).String() // 0s
-now.AddHour().DiffAbsInDuration(now).String() // 1h0m0s
-now.SubHour().DiffAbsInDuration(now).String() // 1h0m0s
+now.Copy().AddHour().DiffAbsInDuration(now).String() // 1h0m0s
+now.Copy().SubHour().DiffAbsInDuration(now).String() // 1h0m0s
 
 // 人が読みやすいフォーマットで時間差を取得
 carbon.Parse("2020-08-05 13:14:15").DiffForHumans() // just now
@@ -616,6 +619,11 @@ c2 := carbon.Parse("2023-04-16")
 carbon.Parse("2023-04-01").Closest(c1, c2) // c1
 // 遠いCarbonインスタンスを返す
 carbon.Parse("2023-04-01").Farthest(c1, c2) // c2
+
+// ゼロ値 Carbon を戻す
+carbon.ZeroValue().ToString() // 0001-01-01 00:00:00 +0000 UTC
+// linux 紀元値 Carbon を戻す
+carbon.EpochValue().ToString() // 1970-01-01 00:00:00 +0000 UTC
 
 yesterday := carbon.Yesterday()
 today     := carbon.Now()
@@ -1445,16 +1453,25 @@ person: {Date:2020-08-05 DateMilli:2020-08-05.999 DateMicro:2020-08-05.999999 Da
 ```
 
 ###### カスタムフィールドタイプ
-
 ```go
 type RFC3339Type string
-func (t RFC3339Type) Layout() string {
+// "carbon.LayoutTyper" インタフェースの実装
+func (RFC3339Type) Layout() string {
   return carbon.RFC3339Layout
+}
+// "carbon.DataTyper" インタフェースの実装（必須ではなく、デフォルトのデータ型は datetime）
+func (RFC3339Type) DataType() string {
+  return "datetime"
 }
 
 type ISO8601Type string
-func (t ISO8601Type) Format() string {
+// "carbon.FormatTyper" インタフェースの実装
+func (ISO8601Type) Format() string {
   return carbon.ISO8601Format
+}
+// "carbon.DataTyper" インタフェースの実装（必須ではなく、デフォルトのデータ型は datetime）
+func (RFC3339Type) DataType() string {
+  return "datetime"
 }
 
 type User struct {
@@ -1574,12 +1591,12 @@ now := carbon.Now().SetLanguage(lang)
 
 now.Copy().AddYears(1).DiffForHumans() // 1 year from now
 now.Copy().AddHours(1).DiffForHumans() // 1h from now
-now.Copy().ToMonthString() // August
-now.Copy().ToShortMonthString() // Aug
-now.Copy().ToWeekString() // Tuesday
-now.Copy().ToShortWeekString() // Tue
-now.Copy().Constellation() // Leo
-now.Copy().Season() // Summer
+now.ToMonthString() // August
+now.ToShortMonthString() // Aug
+now.ToWeekString() // Tuesday
+now.ToShortWeekString() // Tue
+now.Constellation() // Leo
+now.Season() // Summer
 ```
 
 ###### すべての翻訳リソースを書き換える
@@ -1613,12 +1630,12 @@ now := carbon.Now().SetLanguage(lang)
 
 now.Copy().AddYears(1).DiffForHumans() // in 1 yr
 now.Copy().AddHours(1).DiffForHumans() // in 1h
-now.Copy().ToMonthString() // august
-now.Copy().ToShortMonthString() // aug
-now.Copy().ToWeekString() // tuesday
-now.Copy().ToShortWeekString() // tue
-now.Copy().Constellation() // leo
-now.Copy().Season() // summer
+now.ToMonthString() // august
+now.ToShortMonthString() // aug
+now.ToWeekString() // tuesday
+now.ToShortWeekString() // tue
+now.Constellation() // leo
+now.Season() // summer
 ```
 
 ##### エラー処理
@@ -1630,53 +1647,53 @@ if c.HasError() {
   log.Fatal(c.Error)
 }
 // 出力
-timezone "xxx" is invalid, please see the file "$GOROOT/lib/time/zoneinfo.zip" for all valid timezones
+invalid timezone "xxx", please see the file "$GOROOT/lib/time/zoneinfo.zip" for all valid timezones
 ```
 
 #### 付録
 
 ##### <a id="format-sign-table">書式設定記号表</a>
 
-| 記号 |                 説明                  | 長さ |        範囲        |          例          |
-|:--:|:-----------------------------------:|:--:|:----------------:|:-------------------:|
-| d  |            月の日(2桁でパディング)            | 2  |      01-31       |         02          |
-| D  |                略語の曜日                | 3  |     Mon-Sun      |         Mon         |
-| j  |            月の日(パディングしない)            | -  |       1-31       |          2          |
-| K  |     何日目の英語の略語の接尾語，普通はjと協力して使います     | 2  |   st/nd/rd/th    |         th          |
-| l  |                 曜日                  | -  |  Monday-Sunday   |       Monday        |
-| F  |                  月                  | -  | January-December |       January       |
-| m  |             月(2桁でパディング)             | 2  |      01-12       |         01          |
-| M  |                略語の月                 | 3  |     Jan-Dec      |         Jan         |
-| n  |             月(パディングしない)             | -  |       1-12       |          1          |
-| Y  |                  年                  | 4  |    0000-9999     |        2006         |
-| y  |               年(下2桁)                | 2  |      00-99       |         06          |
-| a  |              小文字の午前と午後              | 2  |      am/pm       |         pm          |
-| A  |              大文字の午前と午後              | 2  |      AM/PM       |         PM          |
-| g  |           時間, 12時間のフォーマット           | -  |       1-12       |          3          |
-| G  |           時間, 24時間のフォーマット           | -  |       0-23       |         15          |
-| h  |           時間, 12時間のフォーマット           | 2  |      00-11       |         03          |
-| H  |           時間, 24時間のフォーマット           | 2  |      00-23       |         15          |
-| i  |                  分                  | 2  |      01-59       |         04          |
-| s  |                  秒                  | 2  |      01-59       |         05          |
-| O  |           グリニッジとの時間差の時間数            | -  |        -         |        -0700        |
-| P  |    グリニッジと時間の差の時間数, 時間と分の間にコロンあり     | -  |        -         |       -07:00        |
-| Z  |              タイムゾーンの略語              | -  |        -         |         JST         |
-| W  | ISO8601 フォーマットの数字は年の中の第何週(2桁でパディング) | 2  |       1-52       |         01          |
-| N  |   ISO8601 フォーマットの数字は曜日(2桁でパディング)    | 2  |      01-07       |         02          |
-| L  |       うるう年かどうか, うるう年が1であれば, 0       | 1  |       0-1        |          0          |
-| S  |              秒精度タイムスタンプ              | -  |        -         |     1596604455      |
-| U  |             ミリ精度タイムスタンプ      | -  |        -         |    1596604455666    |
-| V  |            マイクロ精度タイムスタンプ             | -  |        -         |  1596604455666666   |
-| X  |             納精度タイムスタンプ            | -  |        -         | 1596604455666666666 |
-| u  |                 ミリ秒                 | -  |      1-999       |         999         |
-| v  |                マイクロ秒                | -  |     1-999999     |       999999        |
-| x  |                 ナノ秒                 | -  |   1-999999999    |      999999999      |
-| w  |               数字表示の曜日               | 1  |       0-6        |          1          |
-| t  |                月の総日数                | 2  |      28-31       |         31          |
-| z  |              タイムゾーンの場所              | -  |        -         |        Japan        |
-| o  |             タイムゾーンオフセット             | -  |        -         |        32400        |
-| q  |                 四半期                 | 1  |       1-4        |          1          |
-| c  |                 世紀                  | -  |       0-99       |         21          |
+| 記号 |              説明              | 長さ  |        範囲        |          例          |
+|:--:|:----------------------------:|:---:|:----------------:|:-------------------:|
+| d  |        月の日(2桁でパディング)         |  2  |      01-31       |         02          |
+| D  |            略語の曜日             |  3  |     Mon-Sun      |         Mon         |
+| j  |        月の日(パディングしない)         |  -  |       1-31       |          2          |
+| K  | 何日目の英語の略語の接尾語，普通はjと協力して使います  |  2  |   st/nd/rd/th    |         th          |
+| l  |              曜日              |  -  |  Monday-Sunday   |       Monday        |
+| F  |              月               |  -  | January-December |       January       |
+| m  |         月(2桁でパディング)          |  2  |      01-12       |         01          |
+| M  |             略語の月             |  3  |     Jan-Dec      |         Jan         |
+| n  |         月(パディングしない)          |  -  |       1-12       |          1          |
+| Y  |              年               |  4  |    0000-9999     |        2006         |
+| y  |            年(下2桁)            |  2  |      00-99       |         06          |
+| a  |          小文字の午前と午後           |  2  |      am/pm       |         pm          |
+| A  |          大文字の午前と午後           |  2  |      AM/PM       |         PM          |
+| g  |       時間, 12時間のフォーマット        |  -  |       1-12       |          3          |
+| G  |       時間, 24時間のフォーマット        |  -  |       0-23       |         15          |
+| h  |       時間, 12時間のフォーマット        |  2  |      00-11       |         03          |
+| H  |       時間, 24時間のフォーマット        |  2  |      00-23       |         15          |
+| i  |              分               |  2  |      01-59       |         04          |
+| s  |              秒               |  2  |      01-59       |         05          |
+| O  |        グリニッジとの時間差の時間数        |  -  |        -         |        -0700        |
+| P  | グリニッジと時間の差の時間数, 時間と分の間にコロンあり |  -  |        -         |       -07:00        |
+| Z  |          タイムゾーンの略語           |  -  |        -         |         JST         |
+| W  |            年の第数週             | 1-2 |       1-52       |          1          |
+| N  |            曜日の日付             |  1  |       1-7        |          2          |
+| L  |   うるう年かどうか, うるう年が1であれば, 0    |  1  |       0-1        |          0          |
+| S  |          秒精度タイムスタンプ          |  -  |        -         |     1596604455      |
+| U  |         ミリ精度タイムスタンプ          |  -  |        -         |    1596604455666    |
+| V  |        マイクロ精度タイムスタンプ         |  -  |        -         |  1596604455666666   |
+| X  |          納精度タイムスタンプ          |  -  |        -         | 1596604455666666666 |
+| u  |             ミリ秒              |  -  |      1-999       |         999         |
+| v  |            マイクロ秒             |  -  |     1-999999     |       999999        |
+| x  |             ナノ秒              |  -  |   1-999999999    |      999999999      |
+| w  |           数字表示の曜日            |  1  |       0-6        |          1          |
+| t  |            月の総日数             |  2  |      28-31       |         31          |
+| z  |          タイムゾーンの場所           |  -  |        -         |        Japan        |
+| o  |         タイムゾーンオフセット          |  -  |        -         |        32400        |
+| q  |             四半期              |  1  |       1-4        |          1          |
+| c  |              世紀              |  -  |       0-99       |         21          |
 
 #### FAQ
 

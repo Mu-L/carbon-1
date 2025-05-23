@@ -4,6 +4,20 @@ import (
 	"testing"
 )
 
+func BenchmarkZeroValue(b *testing.B) {
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		ZeroValue()
+	}
+}
+
+func BenchmarkEpochValue(b *testing.B) {
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		EpochValue()
+	}
+}
+
 func BenchmarkMaxValue(b *testing.B) {
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {

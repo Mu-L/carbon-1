@@ -4,7 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -13,8 +13,13 @@ import (
 //go:embed lang
 var fs embed.FS
 
+var validResourcesKey = []string{
+	"months", "short_months", "weeks", "short_weeks", "seasons", "constellations",
+	"year", "month", "week", "day", "hour", "minute", "second",
+	"now", "ago", "from_now", "before", "after",
+}
+
 // Language defines a Language struct.
-// 定义 Language 结构体
 type Language struct {
 	dir       string
 	locale    string
@@ -24,7 +29,6 @@ type Language struct {
 }
 
 // NewLanguage returns a new Language instance.
-// 初始化 Language 结构体
 func NewLanguage() *Language {
 	return &Language{
 		dir:       "lang",
@@ -35,7 +39,6 @@ func NewLanguage() *Language {
 }
 
 // Copy returns a new copy of the current Language instance
-// 复制 Language 实例
 func (lang *Language) Copy() *Language {
 	if lang == nil {
 		return nil
@@ -57,7 +60,6 @@ func (lang *Language) Copy() *Language {
 }
 
 // SetLocale sets language locale.
-// 设置区域
 func (lang *Language) SetLocale(locale string) *Language {
 	if lang == nil || lang.Error != nil {
 		return lang
@@ -71,7 +73,7 @@ func (lang *Language) SetLocale(locale string) *Language {
 	defer lang.rw.Unlock()
 
 	lang.locale = locale
-	fileName := filepath.Join(lang.dir, locale+".json")
+	fileName := fmt.Sprintf("%s/%s.json", lang.dir, locale)
 	var (
 		bs  []byte
 		err error
@@ -85,7 +87,6 @@ func (lang *Language) SetLocale(locale string) *Language {
 }
 
 // SetResources sets language resources.
-// 设置资源
 func (lang *Language) SetResources(resources map[string]string) *Language {
 	if lang == nil || lang.Error != nil {
 		return lang
@@ -98,22 +99,24 @@ func (lang *Language) SetResources(resources map[string]string) *Language {
 	lang.rw.Lock()
 	defer lang.rw.Unlock()
 
-	for i := range resources {
-		if _, ok := lang.resources[i]; ok {
-			lang.resources[i] = resources[i]
-		} else {
-			lang.Error = ErrInvalidResourcesError()
-		}
-	}
-
 	if len(lang.resources) == 0 {
 		lang.resources = resources
 	}
+
+	for i := range resources {
+		if !slices.Contains(validResourcesKey, i) {
+			lang.Error = ErrInvalidResourcesError(resources)
+			return lang
+		}
+		if _, ok := lang.resources[i]; ok {
+			lang.resources[i] = resources[i]
+		}
+	}
+
 	return lang
 }
 
 // returns a translated string.
-// 翻译转换
 func (lang *Language) translate(unit string, value int64) string {
 	if lang == nil || lang.resources == nil {
 		return ""

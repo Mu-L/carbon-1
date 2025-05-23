@@ -1,4 +1,4 @@
-package tests
+package gorm
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 const (
@@ -21,10 +22,11 @@ var (
 	dsn string
 	dia gorm.Dialector
 	db  *gorm.DB
+	err error
 )
 
 func connect(driver string) *gorm.DB {
-	if err := godotenv.Load(".env"); err != nil {
+	if err = godotenv.Load("../.env"); err != nil {
 		panic("`.env` file does not exist, please copy `.env.example` file to `.env` file")
 	}
 
@@ -38,8 +40,8 @@ func connect(driver string) *gorm.DB {
 	case driverSQLite:
 		dia = sqlite.Open(os.Getenv("SQLite_DB_DATABASE"))
 	}
-	db, err := gorm.Open(dia, &gorm.Config{
-		//Logger: logger.Default.LogMode(logger.Info),
+	db, err = gorm.Open(dia, &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
 		panic(fmt.Sprintf("failed to connect database, dsn: %q", dsn))

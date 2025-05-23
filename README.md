@@ -23,7 +23,7 @@ A simple, semantic and developer-friendly time package for `golang`, `100%` unit
 
 #### Installation
 
-##### go version >= 1.18
+##### go version >= 1.21
 
 ```go
 // By github
@@ -255,14 +255,8 @@ carbon.ParseByLayout("It is 2020-08-05 13:14:15", "It is 2006-01-02 15:04:05").T
 carbon.ParseByLayout("今天是 2020年08月05日13时14分15秒", "今天是 2006年01月02日15时04分05秒").ToDateTimeString() // 2020-08-05 13:14:15
 ```
 
-##### Parse a time string as a `Carbon` instance by multiple fuzzy layouts
-
-```go
-carbon.ParseByLayouts("2020|08|05 13|14|15", []string{"2006|01|02 15|04|05", "2006|1|2 3|4|5"}).ToDateTimeString() // 2020-08-05 13:14:15
-carbon.ParseByLayouts("2020|08|05 13|14|15", []string{"2006|01|02 15|04|05", "2006|1|2 3|4|5"}).CurrentLayout() // 2006|01|02 15|04|05
-```
-
 ##### Parse a time string as a `Carbon` instance by a confirmed format
+> Note: If the letter used conflicts with the format sign, please use the escape character "\\" to escape the letter
 
 ```go
 carbon.ParseByFormat("2020|08|05 13|14|15", "Y|m|d H|i|s").ToDateTimeString() // 2020-08-05 13:14:15
@@ -270,7 +264,16 @@ carbon.ParseByFormat("It is 2020-08-05 13:14:15", "\\I\\t \\i\\s Y-m-d H:i:s").T
 carbon.ParseByFormat("今天是 2020年08月05日13时14分15秒", "今天是 Y年m月d日H时i分s秒").ToDateTimeString() // 2020-08-05 13:14:15
 ```
 
+##### Parse a time string as a `Carbon` instance by multiple fuzzy layouts
+> Note: it doesn't support parsing by timestamp layouts
+
+```go
+carbon.ParseByLayouts("2020|08|05 13|14|15", []string{"2006|01|02 15|04|05", "2006|1|2 3|4|5"}).ToDateTimeString() // 2020-08-05 13:14:15
+carbon.ParseByLayouts("2020|08|05 13|14|15", []string{"2006|01|02 15|04|05", "2006|1|2 3|4|5"}).CurrentLayout() // 2006|01|02 15|04|05
+```
+
 ##### Parse a time string as a `Carbon` instance by multiple fuzzy formats
+> Note: it doesn't support parsing by timestamp formats
 
 ```go
 carbon.ParseByFormats("2020|08|05 13|14|15", []string{"Y|m|d H|i|s", "y|m|d h|i|s"}).ToDateTimeString() // 2020-08-05 13:14:15
@@ -586,12 +589,12 @@ carbon.Now().SubYearsNoOverflow(1).DiffAbsInString(carbon.Now()) // 1 year
 // Difference in duration
 now := carbon.Now()
 now.DiffInDuration(now).String() // 0s
-now.AddHour().DiffInDuration(now).String() // 1h0m0s
-now.SubHour().DiffInDuration(now).String() // -1h0m0s
+now.Copy().AddHour().DiffInDuration(now).String() // 1h0m0s
+now.Copy().SubHour().DiffInDuration(now).String() // -1h0m0s
 // Difference in duration with absolute value
 now.DiffAbsInDuration(now).String() // 0s
-now.AddHour().DiffAbsInDuration(now).String() // 1h0m0s
-now.SubHour().DiffAbsInDuration(now).String() // 1h0m0s
+now.Copy().AddHour().DiffAbsInDuration(now).String() // 1h0m0s
+now.Copy().SubHour().DiffAbsInDuration(now).String() // 1h0m0s
 
 // Difference in a human-readable format
 carbon.Parse("2020-08-05 13:14:15").DiffForHumans() // just now
@@ -623,6 +626,11 @@ tomorrow  := carbon.Tomorrow()
 carbon.Max(yesterday, today, tomorrow) // tomorrow
 // Return the minimum Carbon instance
 carbon.Min(yesterday, today, tomorrow) // yesterday
+
+// Return a zero value Carbon
+carbon.ZeroValue().ToString() // 0001-01-01 00:00:00 +0000 UTC
+// Return a linux epoch value Carbon
+carbon.EpochValue().ToString() // 1970-01-01 00:00:00 +0000 UTC
 
 // Return a Carbon instance for the greatest supported date
 carbon.MaxValue().ToString() // 9999-12-31 23:59:59.999999999 +0000 UTC
@@ -1442,16 +1450,25 @@ person: {Date:2020-08-05 DateMilli:2020-08-05.999 DateMicro:2020-08-05.999999 Da
 ```
 
 ###### Customize type
-
 ```go
 type RFC3339Type string
-func (t RFC3339Type) Layout() string {
+// implement "carbon.LayoutTyper" interface
+func (RFC3339Type) Layout() string {
   return carbon.RFC3339Layout
+}
+// implement "carbon.DataTyper" interface (not required, default data type is datetime)
+func (RFC3339Type) DataType() string {
+  return "datetime"
 }
 
 type ISO8601Type string
-func (t ISO8601Type) Format() string {
+// implement "carbon.FormatTyper" interface
+func (ISO8601Type) Format() string {
   return carbon.ISO8601Format
+}
+// implement "carbon.DataTyper" interface (not required, default data type is datetime)
+func (RFC3339Type) DataType() string {
+  return "datetime"
 }
 
 type User struct {
@@ -1553,13 +1570,13 @@ lang.SetLocale("en")
 carbon.SetTestNow(carbon.Parse("2020-08-05 13:14:15"))
 now := carbon.Now().SetLanguage(lang)
 
-now.AddHours(1).DiffForHumans() // 1 hour from now
-now.AddHours(1).ToMonthString() // August
-now.AddHours(1).ToShortMonthString() // Aug
-now.AddHours(1).ToWeekString() // Wednesday
-now.AddHours(1).ToShortWeekString() // Wed
-now.AddHours(1).Constellation() // Leo
-now.AddHours(1).Season() // Summer
+now.Copy().AddHours(1).DiffForHumans() // 1 hour from now
+now.Copy().AddHours(1).ToMonthString() // August
+now.Copy().AddHours(1).ToShortMonthString() // Aug
+now.Copy().AddHours(1).ToWeekString() // Wednesday
+now.Copy().AddHours(1).ToShortWeekString() // Wed
+now.Copy().AddHours(1).Constellation() // Leo
+now.Copy().AddHours(1).Season() // Summer
 ```
 
 ###### Reset some resources(the rests still translate from the given locale)
@@ -1575,8 +1592,8 @@ lang.SetLocale("en").SetResources(resources)
 carbon.SetTestNow(carbon.Parse("2020-08-05 13:14:15"))
 now := carbon.Now().SetLanguage(lang)
 
-now.AddYears(1).DiffForHumans() // 1 year from now
-now.AddHours(1).DiffForHumans() // 1h from now
+now.Copy().AddYears(1).DiffForHumans() // 1 year from now
+now.Copy().AddHours(1).DiffForHumans() // 1h from now
 now.ToMonthString() // August
 now.ToShortMonthString() // Aug
 now.ToWeekString() // Tuesday
@@ -1614,8 +1631,8 @@ lang.SetResources(resources)
 carbon.SetTestNow(carbon.Parse("2020-08-05 13:14:15"))
 now := carbon.Now().SetLanguage(lang)
 
-now.AddYears(1).DiffForHumans() // in 1 yr
-now.AddHours(1).DiffForHumans() // in 1h
+now.Copy().AddYears(1).DiffForHumans() // in 1 yr
+now.Copy().AddHours(1).DiffForHumans() // in 1h
 now.ToMonthString() // august
 now.ToShortMonthString() // aug
 now.ToWeekString() // tuesday
@@ -1633,7 +1650,7 @@ if c.HasError() {
   log.Fatal(c.Error)
 }
 // Output
-timezone "xxx" is invalid, please see the file "$GOROOT/lib/time/zoneinfo.zip" for all valid timezones
+invalid timezone "xxx", please see the file "$GOROOT/lib/time/zoneinfo.zip" for all valid timezones
 ```
 
 #### Appendix
@@ -1664,8 +1681,8 @@ timezone "xxx" is invalid, please see the file "$GOROOT/lib/time/zoneinfo.zip" f
 |  O   |               Difference to Greenwich time (GMT) without colon between hours and minutes               |   -    |        -         |        -0700        |
 |  P   |                Difference to Greenwich time (GMT) with colon between hours and minutes                 |   -    |        -         |       -07:00        |
 |  Z   |                                               Zone name                                                |   -    |        -         |         MST         |
-|  W   |                                     week of the year, padded to 2                                      |   2    |      01-52       |         01          |
-|  N   |                                      day of the week, padded to 2                                      |   2    |      01-07       |         02          |
+|  W   |                               week of the year                                                         |  1-2   |       1-52       |          1          |
+|  N   |                                            day of the week                                             |   1    |       1-7        |          2          |
 |  L   |                                        Whether it's a leap year                                        |   1    |       0-1        |          0          |
 |  S   |                                       Unix timestamp with second                                       |   -    |        -         |     1596604455      |
 |  U   |                               Unix timestamp with millisecond precision                                |   -    |        -         |    1596604455666    |

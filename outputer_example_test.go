@@ -698,7 +698,7 @@ func ExampleCarbon_Format() {
 	// j format: 5
 	// W format: 32
 	// F format: August
-	// N format: 03
+	// N format: 3
 	// L format: 1
 	// L format: 0
 	// G format: 13

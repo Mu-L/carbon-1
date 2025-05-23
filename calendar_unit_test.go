@@ -22,35 +22,34 @@ func (s *CalendarSuite) TestCarbon_Julian() {
 	})
 
 	s.Run("zero carbon", func() {
-		c := NewCarbon()
-		s.Nil(Parse("").Lunar().Error)
-		s.Equal(1.7214235e+06, c.Julian().JD())
-		s.Equal(float64(-678577), c.Julian().MJD())
+		j := NewCarbon().Julian()
+		s.Equal(1.7214235e+06, j.JD())
+		s.Equal(float64(-678577), j.MJD())
 	})
 
 	s.Run("empty carbon", func() {
-		c := Parse("")
-		s.Zero(c.Julian().JD())
-		s.Zero(c.Julian().MJD())
+		j := Parse("").Julian()
+		s.Zero(j.JD())
+		s.Zero(j.MJD())
 	})
 
 	s.Run("error carbon", func() {
-		c := Parse("xxx")
-		s.Zero(c.Julian().JD())
-		s.Zero(c.Julian().MJD())
+		j := Parse("xxx").Julian()
+		s.Zero(j.JD())
+		s.Zero(j.MJD())
 	})
 
 	s.Run("valid carbon", func() {
-		c := Parse("2024-01-23 13:14:15")
+		j := Parse("2024-01-23 13:14:15").Julian()
 
-		s.Equal(2460333.051563, c.Julian().JD())
-		s.Equal(60332.551563, c.Julian().MJD())
+		s.Equal(2460333.051563, j.JD())
+		s.Equal(60332.551563, j.MJD())
 
-		s.Equal(2460333.0516, c.Julian().JD(4))
-		s.Equal(60332.5516, c.Julian().MJD(4))
+		s.Equal(2460333.0516, j.JD(4))
+		s.Equal(60332.5516, j.MJD(4))
 
-		s.Equal(2460333.0515625, c.Julian().JD(7))
-		s.Equal(60332.5515625, c.Julian().MJD(7))
+		s.Equal(2460333.0515625, j.JD(7))
+		s.Equal(60332.5515625, j.MJD(7))
 	})
 }
 
@@ -80,18 +79,21 @@ func (s *CalendarSuite) TestCarbon_Lunar() {
 	})
 
 	s.Run("zero carbon", func() {
-		s.Nil(NewCarbon().Lunar().Error)
-		s.Empty(NewCarbon().Lunar().String())
+		l := NewCarbon().Lunar()
+		s.Nil(l.Error)
+		s.Empty(l.String())
 	})
 
 	s.Run("empty carbon", func() {
-		s.Nil(Parse("").Lunar().Error)
-		s.Empty(Parse("").Lunar().String())
+		l := Parse("").Lunar()
+		s.Nil(l.Error)
+		s.Empty(l.String())
 	})
 
 	s.Run("error carbon", func() {
-		s.Error(Parse("xxx").Lunar().Error)
-		s.Empty(Parse("xxx").Lunar().String())
+		l := Parse("xxx").Lunar()
+		s.Error(l.Error)
+		s.Empty(l.String())
 	})
 
 	s.Run("valid carbon", func() {
@@ -121,18 +123,21 @@ func (s *CalendarSuite) TestCarbon_Persian() {
 	})
 
 	s.Run("zero carbon", func() {
-		s.Nil(NewCarbon().Persian().Error)
-		s.Empty(NewCarbon().Persian().String())
+		p := NewCarbon().Persian()
+		s.Nil(p.Error)
+		s.Empty(p.String())
 	})
 
 	s.Run("empty carbon", func() {
-		s.Nil(Parse("").Persian().Error)
-		s.Empty(Parse("").Persian().String())
+		p := Parse("").Persian()
+		s.Nil(p.Error)
+		s.Empty(p.String())
 	})
 
 	s.Run("error carbon", func() {
-		s.Error(Parse("xxx").Persian().Error)
-		s.Empty(Parse("xxx").Persian().String())
+		p := Parse("xxx").Persian()
+		s.Error(p.Error)
+		s.Empty(p.String())
 	})
 
 	s.Run("valid carbon", func() {

@@ -1,7 +1,6 @@
 package carbon
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -48,13 +47,11 @@ func (s *LanguageSuite) TestLanguage_Copy() {
 	})
 
 	s.Run("copy resources", func() {
-		resources := map[string]string{
+		oldLang := NewLanguage()
+		oldLang.SetLocale("en").SetResources(map[string]string{
 			"months":       "Ⅰ月|Ⅱ月|Ⅲ月|Ⅳ月|Ⅴ月|Ⅵ月|Ⅶ月|Ⅷ月|Ⅸ月|Ⅹ月|Ⅺ月|Ⅻ月",
 			"short_months": "Ⅰ|Ⅱ|Ⅲ|Ⅳ|Ⅴ|Ⅵ|Ⅶ|Ⅷ|Ⅸ|Ⅹ|Ⅺ|Ⅻ",
-		}
-
-		oldLang := NewLanguage()
-		oldLang.SetLocale("en").SetResources(resources)
+		})
 		newCarbon := oldLang.Copy()
 		s.Equal(oldLang.resources, newCarbon.resources)
 	})
@@ -71,20 +68,22 @@ func (s *LanguageSuite) TestLanguage_SetLocale() {
 	s.Run("error locale", func() {
 		lang := NewLanguage()
 		lang.SetLocale("xxx")
+		s.Error(lang.Error)
 		s.Empty(Parse("2020-08-05 13:14:15").SetLanguage(lang).ToMonthString())
 	})
 
 	s.Run("empty locale", func() {
 		lang := NewLanguage()
 		lang.SetLocale("")
-		fmt.Println("lang", lang.locale)
+		s.Error(lang.Error)
 		s.Empty(Parse("2020-08-05 13:14:15").SetLanguage(lang).ToMonthString())
 	})
 
-	s.Run("valid time", func() {
+	s.Run("valid carbon", func() {
 		lang := NewLanguage()
 
 		lang.SetLocale("en")
+		s.Nil(lang.Error)
 		s.Equal("Leo", Parse("2020-08-05").SetLanguage(lang).Constellation())
 		s.Equal("Summer", Parse("2020-08-05").SetLanguage(lang).Season())
 		s.Equal("4 years before", Parse("2020-08-05").SetLanguage(lang).DiffForHumans(Parse("2024-08-05")))
@@ -94,6 +93,7 @@ func (s *LanguageSuite) TestLanguage_SetLocale() {
 		s.Equal("Wed", Parse("2020-08-05").SetLanguage(lang).ToShortWeekString())
 
 		lang.SetLocale("zh-CN")
+		s.Nil(lang.Error)
 		s.Equal("狮子座", Parse("2020-08-05").SetLanguage(lang).Constellation())
 		s.Equal("夏季", Parse("2020-08-05").SetLanguage(lang).Season())
 		s.Equal("4 年前", Parse("2020-08-05").SetLanguage(lang).DiffForHumans(Parse("2024-08-05")))
@@ -108,19 +108,24 @@ func (s *LanguageSuite) TestLanguage_SetResources() {
 	s.Run("nil language", func() {
 		lang := NewLanguage()
 		lang = nil
-		lang.SetResources(nil)
+		lang.SetResources(map[string]string{
+			"months":       "Ⅰ月|Ⅱ月|Ⅲ月|Ⅳ月|Ⅴ月|Ⅵ月|Ⅶ月|Ⅷ月|Ⅸ月|Ⅹ月|Ⅺ月|Ⅻ月",
+			"short_months": "Ⅰ|Ⅱ|Ⅲ|Ⅳ|Ⅴ|Ⅵ|Ⅶ|Ⅷ|Ⅸ|Ⅹ|Ⅺ|Ⅻ",
+		})
 		s.Empty(Parse("2020-08-05 13:14:15").SetLanguage(lang).ToMonthString())
 	})
 
 	s.Run("nil resources", func() {
 		lang := NewLanguage()
 		lang.SetResources(nil)
+		s.Error(lang.Error)
 		s.Empty(Parse("2020-08-05 13:14:15").SetLanguage(lang).ToMonthString())
 	})
 
 	s.Run("empty resources", func() {
 		lang := NewLanguage()
 		lang.SetResources(map[string]string{})
+		s.Error(lang.Error)
 		s.Empty(Parse("2020-08-05 13:14:15").SetLanguage(lang).ToMonthString())
 	})
 
@@ -129,17 +134,17 @@ func (s *LanguageSuite) TestLanguage_SetResources() {
 		lang.SetResources(map[string]string{
 			"xxx": "xxx",
 		})
+		s.Error(lang.Error)
 		s.Empty(Parse("2020-08-05 13:14:15").SetLanguage(lang).ToMonthString())
 	})
 
 	s.Run("set some resources", func() {
-		resources := map[string]string{
+		lang := NewLanguage()
+		lang.SetLocale("en").SetResources(map[string]string{
 			"months":       "Ⅰ月|Ⅱ月|Ⅲ月|Ⅳ月|Ⅴ月|Ⅵ月|Ⅶ月|Ⅷ月|Ⅸ月|Ⅹ月|Ⅺ月|Ⅻ月",
 			"short_months": "Ⅰ|Ⅱ|Ⅲ|Ⅳ|Ⅴ|Ⅵ|Ⅶ|Ⅷ|Ⅸ|Ⅹ|Ⅺ|Ⅻ",
-		}
-
-		lang := NewLanguage()
-		lang.SetLocale("en").SetResources(resources)
+		})
+		s.Nil(lang.Error)
 
 		s.Equal("Leo", Parse("2020-08-05").SetLanguage(lang).Constellation())
 		s.Equal("Summer", Parse("2020-08-05").SetLanguage(lang).Season())
@@ -174,6 +179,7 @@ func (s *LanguageSuite) TestLanguage_SetResources() {
 
 		lang := NewLanguage()
 		lang.SetResources(resources)
+		s.Nil(lang.Error)
 
 		s.Equal("Leo", Parse("2020-08-05").SetLanguage(lang).Constellation())
 		s.Equal("summer", Parse("2020-08-05").SetLanguage(lang).Season())
@@ -195,12 +201,14 @@ func (s *LanguageSuite) TestLanguage_translate() {
 	s.Run("nil resources", func() {
 		lang := NewLanguage()
 		lang.SetResources(nil)
+		s.Error(lang.Error)
 		s.Empty(lang.translate("month", 1))
 	})
 
 	s.Run("empty resources", func() {
 		lang := NewLanguage()
 		lang.SetResources(map[string]string{})
+		s.Error(lang.Error)
 		s.Empty(lang.translate("month", 1))
 	})
 
@@ -209,12 +217,14 @@ func (s *LanguageSuite) TestLanguage_translate() {
 		lang.SetResources(map[string]string{
 			"xxx": "xxx",
 		})
+		s.Error(lang.Error)
 		s.Empty(lang.translate("month", 1))
 	})
 
 	s.Run("valid resources", func() {
 		lang := NewLanguage()
 		lang.SetLocale("en")
+		s.Nil(lang.Error)
 		s.Equal("1 month", lang.translate("month", 1))
 		s.Equal("-1 month", lang.translate("month", -1))
 	})

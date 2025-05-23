@@ -6,6 +6,18 @@ import (
 	"github.com/dromara/carbon/v2"
 )
 
+func ExampleZeroValue() {
+	fmt.Println(carbon.ZeroValue().ToString())
+	// Output:
+	// 0001-01-01 00:00:00 +0000 UTC
+}
+
+func ExampleEpochValue() {
+	fmt.Println(carbon.EpochValue().ToString())
+	// Output:
+	// 1970-01-01 00:00:00 +0000 UTC
+}
+
 func ExampleMaxValue() {
 	fmt.Println(carbon.MaxValue().ToString())
 	// Output:
