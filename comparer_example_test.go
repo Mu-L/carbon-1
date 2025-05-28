@@ -38,26 +38,28 @@ func ExampleCarbon_IsNil() {
 }
 
 func ExampleCarbon_IsEmpty() {
+	var c *carbon.Carbon
+	c = nil
+	fmt.Println(c.IsEmpty())
+
 	fmt.Println(carbon.NewCarbon().IsEmpty())
 	fmt.Println(carbon.Parse("xxx").IsEmpty())
 	fmt.Println(carbon.Now().IsEmpty())
 	fmt.Println(carbon.Parse("").IsEmpty())
 
-	c := carbon.NewCarbon()
-	c = nil
-	fmt.Println(c.IsEmpty())
-
 	// Output:
 	// false
 	// false
 	// false
-	// true
 	// false
+	// true
 }
 
 func ExampleCarbon_IsZero() {
 	fmt.Println(carbon.NewCarbon().IsZero())
-	fmt.Println(carbon.CreateFromDateTimeNano(0001, 1, 1, 00, 00, 00, 00, carbon.UTC).IsZero())
+	fmt.Println(carbon.ZeroValue().IsZero())
+	fmt.Println(carbon.CreateFromDateTimeNano(1, 1, 1, 0, 0, 0, 0, carbon.UTC).IsZero())
+	fmt.Println(carbon.CreateFromTimestamp(0).IsZero())
 
 	fmt.Println(carbon.Parse("").IsZero())
 	fmt.Println(carbon.Parse("xxx").IsZero())
@@ -66,23 +68,28 @@ func ExampleCarbon_IsZero() {
 	// Output:
 	// true
 	// true
+	// true
+	// false
 	// false
 	// false
 	// false
 }
 
 func ExampleCarbon_IsEpoch() {
+	fmt.Println(carbon.NewCarbon().IsEpoch())
+	fmt.Println(carbon.EpochValue().IsEpoch())
 	fmt.Println(carbon.CreateFromDateTimeNano(1970, 1, 1, 0, 0, 0, 0, carbon.UTC).IsEpoch())
 	fmt.Println(carbon.CreateFromTimestamp(0).IsEpoch())
-	fmt.Println(carbon.NewCarbon().IsEpoch())
+
 	fmt.Println(carbon.Parse("").IsEpoch())
 	fmt.Println(carbon.Parse("xxx").IsEpoch())
 	fmt.Println(carbon.Now().IsEpoch())
 
 	// Output:
-	// true
-	// true
 	// false
+	// true
+	// true
+	// true
 	// false
 	// false
 	// false

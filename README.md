@@ -23,7 +23,7 @@ A simple, semantic and developer-friendly time package for `golang`, `100%` unit
 
 #### Installation
 
-##### go version >= 1.18
+##### go version >= 1.21
 
 ```go
 // By github
@@ -151,7 +151,7 @@ carbon.Tomorrow().TimestampMicro() // 1596719655999999
 carbon.Tomorrow().TimestampNano() // 1596719655999999999
 ```
 
-##### Create a `Carbon` instance
+##### Creator
 
 ```go
 // Create a Carbon instance from a given timestamp with second precision
@@ -194,9 +194,10 @@ carbon.CreateFromTimeMicro(13, 14, 15, 999999).ToString() // 2020-08-05 13:14:15
 carbon.CreateFromTimeNano(13, 14, 15, 999999999).ToString() // 2020-08-05 13:14:15.999999999 +0000 UTC
 
 ```
+##### Parsing
+> This series of methods don't support `timestamp` string parsing. To parse timestamp, please use methods such as `CreateFromTimestamp` or `CreateFromTimestampXXX`
 
-##### Parse a time string as a `Carbon` instance
-
+###### Parse a time string as a `Carbon` instance by default layouts
 ```go
 carbon.Parse("").ToDateTimeString() // empty string
 carbon.Parse("0").ToDateTimeString() // empty string
@@ -247,22 +248,15 @@ carbon.Parse("2022-03-08T03:01:14-07:00").ToString() // 2022-03-08 10:01:14 +000
 carbon.Parse("2022-03-08T10:01:14Z").ToString() // 2022-03-08 10:01:14 +0000 UTC
 ```
 
-##### Parse a time string as a `Carbon` instance by a confirmed layout
-
+###### Parse a time string as a `Carbon` instance by a confirmed layout
 ```go
 carbon.ParseByLayout("2020|08|05 13|14|15", "2006|01|02 15|04|05").ToDateTimeString() // 2020-08-05 13:14:15
 carbon.ParseByLayout("It is 2020-08-05 13:14:15", "It is 2006-01-02 15:04:05").ToDateTimeString() // 2020-08-05 13:14:15
 carbon.ParseByLayout("今天是 2020年08月05日13时14分15秒", "今天是 2006年01月02日15时04分05秒").ToDateTimeString() // 2020-08-05 13:14:15
 ```
 
-##### Parse a time string as a `Carbon` instance by multiple fuzzy layouts
-
-```go
-carbon.ParseByLayouts("2020|08|05 13|14|15", []string{"2006|01|02 15|04|05", "2006|1|2 3|4|5"}).ToDateTimeString() // 2020-08-05 13:14:15
-carbon.ParseByLayouts("2020|08|05 13|14|15", []string{"2006|01|02 15|04|05", "2006|1|2 3|4|5"}).CurrentLayout() // 2006|01|02 15|04|05
-```
-
-##### Parse a time string as a `Carbon` instance by a confirmed format
+###### Parse a time string as a `Carbon` instance by a confirmed format
+> Note: If the letter used conflicts with the format sign, please use the escape character "\\" to escape the letter
 
 ```go
 carbon.ParseByFormat("2020|08|05 13|14|15", "Y|m|d H|i|s").ToDateTimeString() // 2020-08-05 13:14:15
@@ -270,11 +264,18 @@ carbon.ParseByFormat("It is 2020-08-05 13:14:15", "\\I\\t \\i\\s Y-m-d H:i:s").T
 carbon.ParseByFormat("今天是 2020年08月05日13时14分15秒", "今天是 Y年m月d日H时i分s秒").ToDateTimeString() // 2020-08-05 13:14:15
 ```
 
-##### Parse a time string as a `Carbon` instance by multiple fuzzy formats
-
+###### Parse a time string as a `Carbon` instance by multiple fuzzy layouts
 ```go
-carbon.ParseByFormats("2020|08|05 13|14|15", []string{"Y|m|d H|i|s", "y|m|d h|i|s"}).ToDateTimeString() // 2020-08-05 13:14:15
-carbon.ParseByFormats("2020|08|05 13|14|15", []string{"Y|m|d H|i|s", "y|m|d h|i|s"}).CurrentLayout() // 2006|01|02 15|04|05
+c := carbon.ParseByLayouts("2020|08|05 13|14|15", []string{"2006|01|02 15|04|05", "2006|1|2 3|4|5"})
+c.ToDateTimeString() // 2020-08-05 13:14:15
+c.CurrentLayout() // 2006|01|02 15|04|05
+```
+
+###### Parse a time string as a `Carbon` instance by multiple fuzzy formats
+```go
+c := carbon.ParseByFormats("2020|08|05 13|14|15", []string{"Y|m|d H|i|s", "y|m|d h|i|s"})
+c.ToDateTimeString() // 2020-08-05 13:14:15
+c.CurrentLayout() // 2006|01|02 15|04|05
 ```
 
 ##### Freeze
@@ -586,12 +587,12 @@ carbon.Now().SubYearsNoOverflow(1).DiffAbsInString(carbon.Now()) // 1 year
 // Difference in duration
 now := carbon.Now()
 now.DiffInDuration(now).String() // 0s
-now.AddHour().DiffInDuration(now).String() // 1h0m0s
-now.SubHour().DiffInDuration(now).String() // -1h0m0s
+now.Copy().AddHour().DiffInDuration(now).String() // 1h0m0s
+now.Copy().SubHour().DiffInDuration(now).String() // -1h0m0s
 // Difference in duration with absolute value
 now.DiffAbsInDuration(now).String() // 0s
-now.AddHour().DiffAbsInDuration(now).String() // 1h0m0s
-now.SubHour().DiffAbsInDuration(now).String() // 1h0m0s
+now.Copy().AddHour().DiffAbsInDuration(now).String() // 1h0m0s
+now.Copy().SubHour().DiffAbsInDuration(now).String() // 1h0m0s
 
 // Difference in a human-readable format
 carbon.Parse("2020-08-05 13:14:15").DiffForHumans() // just now
@@ -609,100 +610,94 @@ carbon.Parse("2022-08-05 13:14:15").DiffForHumans(carbon.Now()) // 2 years after
 ##### Extremum
 
 ```go
-c1 := carbon.Parse("2023-03-28")
-c2 := carbon.Parse("2023-04-16")
-// Return the closest Carbon instance
-carbon.Parse("2023-04-01").Closest(c1, c2) // c1
-// Return the farthest Carbon instance
-carbon.Parse("2023-04-01").Farthest(c1, c2) // c2
+c1 := carbon.Parse("2020-08-01")
+c2 := carbon.Parse("2020-08-05")
+c3 := carbon.Parse("2020-08-06")
 
-yesterday := carbon.Yesterday()
-today     := carbon.Now()
-tomorrow  := carbon.Tomorrow()
-// Return the maximum Carbon instance
-carbon.Max(yesterday, today, tomorrow) // tomorrow
-// Return the minimum Carbon instance
-carbon.Min(yesterday, today, tomorrow) // yesterday
+// Return the maximum Carbon instance from some given Carbon instances
+carbon.Max(c1, c2, c3) // c3
+// Return the minimum Carbon instance from some given Carbon instances
+carbon.Min(c1, c2, c3) // c1
 
-// Return a Carbon instance for the greatest supported date
+// Return the closest Carbon instance from some given Carbon instances
+c1.Closest(c2, c3) // c2
+// Return the farthest Carbon instance from some given Carbon instances
+c1.Farthest(c2, c3) // c3
+
+// Return the zero value of Carbon instance
+carbon.ZeroValue().ToString() // 0001-01-01 00:00:00 +0000 UTC
+// Return the unix epoch value of Carbon instance
+carbon.EpochValue().ToString() // 1970-01-01 00:00:00 +0000 UTC
+
+// Return the maximum value of Carbon instance
 carbon.MaxValue().ToString() // 9999-12-31 23:59:59.999999999 +0000 UTC
-// Return a Carbon instance for the lowest supported date
+// Return the minimum value of Carbon instance
 carbon.MinValue().ToString() // 0001-01-01 00:00:00 +0000 UTC
 
-// Return the maximum duration
+// Return the maximum value of duration instance
 carbon.MaxDuration().Seconds() // 9.223372036854776e+09
-// Return the minimum duration
+// Return the minimum value of duration instance
 carbon.MinDuration().Seconds() // -9.223372036854776e+09
 ```
 
 ##### Comparison
 
 ```go
-// Whether it has error
-carbon.Parse("0001-01-01 00:00:00 +0000 UTC").HasError() // false
+// Whether has error
 carbon.NewCarbon().HasError() // false
+carbon.ZeroValue().HasError() // false
+carbon.EpochValue().HasError() // false
+carbon.CreateFromTimestamp(0).HasError() // false
 carbon.Parse("").HasError() // false
 carbon.Parse("0").HasError() // true
 carbon.Parse("xxx").HasError() // true
 carbon.Parse("2020-08-05").HasError() // false
-carbon.CreateFromTimestamp(0).HasError() // false
 
 // Whether is a nil time
-carbon.Parse("0001-01-01 00:00:00 +0000 UTC").IsNil() // false
 carbon.NewCarbon().IsNil() // false
+carbon.ZeroValue().IsNil() // false
+carbon.EpochValue().IsNil() // false
+carbon.CreateFromTimestamp(0).IsNil() // false
 carbon.Parse("").IsNil() // true
 carbon.Parse("0").IsNil() // false
 carbon.Parse("xxx").IsNil() // false
-carbon.NewCarbon().IsNil() // false
-carbon.CreateFromTimestamp(0).IsNil() // false
+carbon.Parse("2020-08-05").IsNil() // false
 
 // Whether is a zero time(0001-01-01 00:00:00 +0000 UTC)
-carbon.Parse("0001-01-01 00:00:00 +0000 UTC").IsZero() // true
 carbon.NewCarbon().IsZero() // true
+carbon.ZeroValue().IsZero() // true
+carbon.EpochValue().IsZero() // false
 carbon.CreateFromTimestamp(0).IsZero() // false
 carbon.Parse("").IsZero() // false
-carbon.Parse("xxx").IsZero() // false
 carbon.Parse("0").IsZero() // false
-carbon.Parse("0000-00-00 00:00:00").IsZero() // false
-carbon.Parse("0000-00-00").IsZero() // false
-carbon.Parse("00:00:00").IsZero() // false
-carbon.Parse("2020-08-05 00:00:00").IsZero() // false
+carbon.Parse("xxx").IsZero() // false
 carbon.Parse("2020-08-05").IsZero() // false
-carbon.Parse("2020-08-05").SetTimezone("xxx").IsZero() // false
 
 // Whether is a empty time
-carbon.Parse("0001-01-01 00:00:00 +0000 UTC").IsEmpty() // true
 carbon.NewCarbon().IsEmpty() // false
+carbon.ZeroValue().IsEmpty() // false
+carbon.EpochValue().IsEmpty() // false
 carbon.CreateFromTimestamp(0).IsEmpty() // false
 carbon.Parse("").IsEmpty() // true
-carbon.Parse("xxx").IsEmpty() // false
 carbon.Parse("0").IsEmpty() // false
-carbon.Parse("0000-00-00 00:00:00").IsEmpty() // false
-carbon.Parse("0000-00-00").IsEmpty() // false
-carbon.Parse("00:00:00").IsEmpty() // false
-carbon.Parse("2020-08-05 00:00:00").IsEmpty() // false
+carbon.Parse("xxx").IsEmpty() // false
 carbon.Parse("2020-08-05").IsEmpty() // false
-carbon.Parse("2020-08-05").SetTimezone("xxx").IsEmpty() // false
 
 // Whether is a unix epoch time(1970-01-01 00:00:00 +0000 UTC).
-carbon.Parse("1970-01-01 00:00:00 +0000 UTC").IsEpoch() // true
-carbon.CreateFromTimestamp(0).IsEpoch() // true
-carbon.Parse("0001-01-01 00:00:00 +0000 UTC").IsEpoch() // false
 carbon.NewCarbon().IsEpoch() // false
+carbon.ZeroValue().IsEpoch() // false
+carbon.EpochValue().IsEpoch() // true
+carbon.CreateFromTimestamp(0).IsEpoch() // true
 carbon.Parse("").IsEpoch() // false
 carbon.Parse("0").IsEpoch() // false
 carbon.Parse("xxx").IsEpoch() // false
-carbon.Parse("0000-00-00 00:00:00").IsEpoch() // false
-carbon.Parse("0000-00-00").IsEpoch() // false
-carbon.Parse("00:00:00").IsEpoch() // false
-carbon.Parse("2020-08-05 00:00:00").IsEpoch() // false
 carbon.Parse("2020-08-05").IsEpoch() // false
-carbon.Parse("2020-08-05").SetTimezone("xxx").IsEpoch() // false
 
 // Whether is a valid time
-carbon.Parse("0001-01-01 00:00:00 +0000 UTC").IsValid()
-carbon.CreateFromTimestamp(0).IsValid() // true
 carbon.NewCarbon().IsValid() // true
+carbon.ZeroValue().IsValid() // true
+carbon.EpochValue().IsEpoch() // true
+carbon.CreateFromTimestamp(0).IsValid() // true
 carbon.Parse("").IsValid() // false
 carbon.Parse("0").IsValid() // false
 carbon.Parse("xxx").IsValid() // false
@@ -711,13 +706,13 @@ carbon.Parse("0000-00-00").IsValid() // false
 carbon.Parse("00:00:00").IsValid() // false
 carbon.Parse("2020-08-05 00:00:00").IsValid() // true
 carbon.Parse("2020-08-05").IsValid() // true
-carbon.Parse("2020-08-05").SetTimezone("xxx").IsValid() // false
 
 // Whether is an invalid time
-carbon.Parse("0001-01-01 00:00:00 +0000 UTC").IsInvalid() // false
-carbon.CreateFromTimestamp(0).IsInvalid() // false
 carbon.NewCarbon().IsInvalid() // false
-carbon.Parse("").IsInvalid() // true
+carbon.ZeroValue().IsInvalid() // false
+carbon.EpochValue().IsInvalid() // false
+carbon.CreateFromTimestamp(0).IsInvalid() // false
+carbon.Parse("").IsInvalid() // false
 carbon.Parse("0").IsInvalid() // true
 carbon.Parse("xxx").IsInvalid() // true
 carbon.Parse("0000-00-00 00:00:00").IsInvalid() // true
@@ -725,7 +720,6 @@ carbon.Parse("0000-00-00").IsInvalid() // true
 carbon.Parse("00:00:00").IsInvalid() // true
 carbon.Parse("2020-08-05 00:00:00").IsInvalid() // false
 carbon.Parse("2020-08-05").IsInvalid() // false
-carbon.Parse("2020-08-05").SetTimezone("xxx").IsInvalid() // true
 
 // Whether is a daylight saving time
 carbon.Parse("").IsDST() // false
@@ -1442,16 +1436,25 @@ person: {Date:2020-08-05 DateMilli:2020-08-05.999 DateMicro:2020-08-05.999999 Da
 ```
 
 ###### Customize type
-
 ```go
 type RFC3339Type string
-func (t RFC3339Type) Layout() string {
+// implement "carbon.LayoutTyper" interface
+func (RFC3339Type) Layout() string {
   return carbon.RFC3339Layout
+}
+// implement "carbon.DataTyper" interface (not required, default data type is datetime)
+func (RFC3339Type) DataType() string {
+  return "datetime"
 }
 
 type ISO8601Type string
-func (t ISO8601Type) Format() string {
+// implement "carbon.FormatTyper" interface
+func (ISO8601Type) Format() string {
   return carbon.ISO8601Format
+}
+// implement "carbon.DataTyper" interface (not required, default data type is datetime)
+func (RFC3339Type) DataType() string {
+  return "datetime"
 }
 
 type User struct {
@@ -1553,13 +1556,13 @@ lang.SetLocale("en")
 carbon.SetTestNow(carbon.Parse("2020-08-05 13:14:15"))
 now := carbon.Now().SetLanguage(lang)
 
-now.AddHours(1).DiffForHumans() // 1 hour from now
-now.AddHours(1).ToMonthString() // August
-now.AddHours(1).ToShortMonthString() // Aug
-now.AddHours(1).ToWeekString() // Wednesday
-now.AddHours(1).ToShortWeekString() // Wed
-now.AddHours(1).Constellation() // Leo
-now.AddHours(1).Season() // Summer
+now.Copy().AddHours(1).DiffForHumans() // 1 hour from now
+now.Copy().AddHours(1).ToMonthString() // August
+now.Copy().AddHours(1).ToShortMonthString() // Aug
+now.Copy().AddHours(1).ToWeekString() // Wednesday
+now.Copy().AddHours(1).ToShortWeekString() // Wed
+now.Copy().AddHours(1).Constellation() // Leo
+now.Copy().AddHours(1).Season() // Summer
 ```
 
 ###### Reset some resources(the rests still translate from the given locale)
@@ -1575,8 +1578,8 @@ lang.SetLocale("en").SetResources(resources)
 carbon.SetTestNow(carbon.Parse("2020-08-05 13:14:15"))
 now := carbon.Now().SetLanguage(lang)
 
-now.AddYears(1).DiffForHumans() // 1 year from now
-now.AddHours(1).DiffForHumans() // 1h from now
+now.Copy().AddYears(1).DiffForHumans() // 1 year from now
+now.Copy().AddHours(1).DiffForHumans() // 1h from now
 now.ToMonthString() // August
 now.ToShortMonthString() // Aug
 now.ToWeekString() // Tuesday
@@ -1614,8 +1617,8 @@ lang.SetResources(resources)
 carbon.SetTestNow(carbon.Parse("2020-08-05 13:14:15"))
 now := carbon.Now().SetLanguage(lang)
 
-now.AddYears(1).DiffForHumans() // in 1 yr
-now.AddHours(1).DiffForHumans() // in 1h
+now.Copy().AddYears(1).DiffForHumans() // in 1 yr
+now.Copy().AddHours(1).DiffForHumans() // in 1h
 now.ToMonthString() // august
 now.ToShortMonthString() // aug
 now.ToWeekString() // tuesday
@@ -1633,7 +1636,7 @@ if c.HasError() {
   log.Fatal(c.Error)
 }
 // Output
-timezone "xxx" is invalid, please see the file "$GOROOT/lib/time/zoneinfo.zip" for all valid timezones
+invalid timezone "xxx", please see the file "$GOROOT/lib/time/zoneinfo.zip" for all valid timezones
 ```
 
 #### Appendix
@@ -1664,8 +1667,8 @@ timezone "xxx" is invalid, please see the file "$GOROOT/lib/time/zoneinfo.zip" f
 |  O   |               Difference to Greenwich time (GMT) without colon between hours and minutes               |   -    |        -         |        -0700        |
 |  P   |                Difference to Greenwich time (GMT) with colon between hours and minutes                 |   -    |        -         |       -07:00        |
 |  Z   |                                               Zone name                                                |   -    |        -         |         MST         |
-|  W   |                                     week of the year, padded to 2                                      |   2    |      01-52       |         01          |
-|  N   |                                      day of the week, padded to 2                                      |   2    |      01-07       |         02          |
+|  W   |                               week of the year                                                         |  1-2   |       1-52       |          1          |
+|  N   |                                            day of the week                                             |   1    |       1-7        |          2          |
 |  L   |                                        Whether it's a leap year                                        |   1    |       0-1        |          0          |
 |  S   |                                       Unix timestamp with second                                       |   -    |        -         |     1596604455      |
 |  U   |                               Unix timestamp with millisecond precision                                |   -    |        -         |    1596604455666    |

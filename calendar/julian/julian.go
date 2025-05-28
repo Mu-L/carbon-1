@@ -11,22 +11,18 @@ import (
 
 var (
 	// julian day or modified julian day decimal precision
-	// 儒略日或简化儒略日小数精度
 	decimalPrecision = 6
 
 	// difference between Julian Day and Modified Julian Day
-	// 儒略日和简化儒略日之间的差值
 	diffJdFromMjd = 2400000.5
 )
 
 // Julian defines a Julian struct.
-// 定义 Julian 结构体
 type Julian struct {
 	jd, mjd float64
 }
 
 // NewJulian returns a new Lunar instance.
-// 返回 Lunar 实例
 func NewJulian(f float64) (j *Julian) {
 	j = new(Julian)
 	// get length of the integer part
@@ -48,7 +44,6 @@ func NewJulian(f float64) (j *Julian) {
 }
 
 // FromStdTime creates a Julian instance from standard time.Time.
-// 从标准 time.Time 创建 Julian 实例
 func FromStdTime(t time.Time) *Julian {
 	j := new(Julian)
 	if t.IsZero() {
@@ -77,7 +72,6 @@ func FromStdTime(t time.Time) *Julian {
 }
 
 // ToGregorian converts Julian instance to Gregorian instance.
-// 将 Lunar 实例转化为 Gregorian 实例
 func (j *Julian) ToGregorian(timezone ...string) *calendar.Gregorian {
 	g := new(calendar.Gregorian)
 	if j == nil {
@@ -124,7 +118,6 @@ func (j *Julian) ToGregorian(timezone ...string) *calendar.Gregorian {
 }
 
 // JD gets julian day like 2460332.5
-// 获取儒略日
 func (j *Julian) JD(precision ...int) float64 {
 	if j == nil {
 		return 0
@@ -137,7 +130,6 @@ func (j *Julian) JD(precision ...int) float64 {
 }
 
 // MJD gets modified julian day like 60332
-// 获取简化儒略日
 func (j *Julian) MJD(precision ...int) float64 {
 	if j == nil {
 		return 0
@@ -150,7 +142,6 @@ func (j *Julian) MJD(precision ...int) float64 {
 }
 
 // parseFloat64 round to n decimal places
-// 四舍五入保留 n 位小数点
 func parseFloat64(f float64, n int) float64 {
 	p10 := math.Pow10(n)
 	return math.Round(f*p10) / p10

@@ -95,8 +95,8 @@ func (s *ComparerSuite) TestCarbon_IsZero() {
 	})
 
 	s.Run("zero carbon", func() {
-		stdTime1 := time.Date(0001, 1, 1, 00, 00, 00, 00, time.UTC)
-		carbon1 := CreateFromDateTimeNano(0001, 1, 1, 00, 00, 00, 00, UTC)
+		stdTime1 := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC)
+		carbon1 := CreateFromDateTimeNano(1, 1, 1, 0, 0, 0, 0, UTC)
 		s.True(carbon1.IsZero())
 		s.Equal(stdTime1.IsZero(), carbon1.IsZero())
 
@@ -104,6 +104,8 @@ func (s *ComparerSuite) TestCarbon_IsZero() {
 		carbon2 := NewCarbon()
 		s.True(carbon2.IsZero())
 		s.Equal(stdTime2.IsZero(), carbon2.IsZero())
+
+		s.True(ZeroValue().IsZero())
 	})
 
 	s.Run("empty carbon", func() {

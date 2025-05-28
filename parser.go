@@ -5,8 +5,9 @@ import (
 	"time"
 )
 
-// Parse parses a standard time string as a Carbon instance.
-// 将标准格式时间字符串解析成 Carbon 实例
+// Parse parses a time string as a Carbon instance by default layouts.
+//
+// Note: it doesn't support parsing timestamp string.
 func Parse(value string, timezone ...string) *Carbon {
 	if value == "" {
 		return &Carbon{isEmpty: true}
@@ -45,8 +46,9 @@ func Parse(value string, timezone ...string) *Carbon {
 	return c
 }
 
-// ParseByLayout parses a time string as a Carbon instance by a confirmed layout
-// 通过一个确认的 布局模板 将时间字符串解析成 Carbon 实例
+// ParseByLayout parses a time string as a Carbon instance by a confirmed layout.
+//
+// Note: it will not support parsing timestamp string in the future.
 func ParseByLayout(value, layout string, timezone ...string) *Carbon {
 	if value == "" {
 		return &Carbon{isEmpty: true}
@@ -107,7 +109,8 @@ func ParseByLayout(value, layout string, timezone ...string) *Carbon {
 }
 
 // ParseByFormat parses a time string as a Carbon instance by a confirmed format.
-// 通过一个确认的 格式模板 将时间字符串解析成 Carbon 实例
+//
+// Note: If the letter used conflicts with the format sign, please use the escape character "\" to escape the letter
 func ParseByFormat(value, format string, timezone ...string) *Carbon {
 	if value == "" {
 		return &Carbon{isEmpty: true}
@@ -123,7 +126,8 @@ func ParseByFormat(value, format string, timezone ...string) *Carbon {
 }
 
 // ParseByLayouts parses a time string as a Carbon instance by multiple fuzzy layouts.
-// 通过多个模糊的 布局模板 将时间字符串解析成 Carbon 实例
+//
+// Note: it doesn't support parsing timestamp string.
 func ParseByLayouts(value string, layouts []string, timezone ...string) *Carbon {
 	if value == "" {
 		return &Carbon{isEmpty: true}
@@ -158,7 +162,8 @@ func ParseByLayouts(value string, layouts []string, timezone ...string) *Carbon 
 }
 
 // ParseByFormats parses a time string as a Carbon instance by multiple fuzzy formats.
-// 通过多个模糊的 格式模板 将时间字符串解析成 Carbon 实例
+//
+// Note: it doesn't support parsing timestamp string.
 func ParseByFormats(value string, formats []string, timezone ...string) *Carbon {
 	if value == "" {
 		return &Carbon{isEmpty: true}
@@ -185,16 +190,16 @@ func ParseByFormats(value string, formats []string, timezone ...string) *Carbon 
 	return ParseByLayouts(value, layouts, tz)
 }
 
-// Deprecated: it will be removed in the future, use ParseByLayouts instead.
 // ParseWithLayouts parses a time string as a Carbon instance by multiple fuzzy layouts.
-// 通过多个模糊的 布局模板 将时间字符串解析成 Carbon 实例
+//
+// Deprecated: it will be removed in the future, use "ParseByLayouts" instead.
 func ParseWithLayouts(value string, layouts []string, timezone ...string) *Carbon {
 	return ParseByLayouts(value, layouts, timezone...)
 }
 
-// Deprecated: it will be removed in the future, use ParseByFormats instead.
 // ParseWithFormats parses a time string as a Carbon instance by multiple fuzzy formats.
-// 通过多个模糊的 格式模板 将时间字符串解析成 Carbon 实例
+//
+// Deprecated: it will be removed in the future, use "ParseByFormats" instead.
 func ParseWithFormats(value string, formats []string, timezone ...string) *Carbon {
 	return ParseByFormats(value, formats, timezone...)
 }

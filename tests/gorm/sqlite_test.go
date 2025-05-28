@@ -1,4 +1,4 @@
-package tests
+package gorm
 
 import (
 	"encoding/json"
@@ -18,12 +18,12 @@ func TestSQLiteSuite(t *testing.T) {
 
 func (s *SQLiteSuite) SetupSuite() {
 	carbon.SetTimezone(carbon.PRC)
-	carbon.SetTestNow(carbon.Parse("2020-08-05 13:14:15"))
+	carbon.SetTestNow(carbon.Parse("2020-08-05 13:14:15.111111111"))
 	db = connect(driverSQLite)
-	if err := db.AutoMigrate(&SQLiteModel1{}); err != nil {
+	if err = db.AutoMigrate(&SQLiteModel1{}); err != nil {
 		panic(err)
 	}
-	if err := db.AutoMigrate(&SQLiteModel2{}); err != nil {
+	if err = db.AutoMigrate(&SQLiteModel2{}); err != nil {
 		panic(err)
 	}
 }
@@ -39,7 +39,7 @@ func (s *SQLiteSuite) TestCurd1() {
 		var model1 SQLiteModel1
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
+		if err = db.Create(&model1).Error; err != nil {
 			panic(err)
 		}
 
@@ -71,7 +71,7 @@ func (s *SQLiteSuite) TestCurd1() {
 		model1.Timestamp = *carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
+		if err = db.Create(&model1).Error; err != nil {
 			panic(err)
 		}
 
@@ -104,7 +104,7 @@ func (s *SQLiteSuite) TestCurd1() {
 		model1.Timestamp = *carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
+		if err = db.Create(&model1).Error; err != nil {
 			panic(err)
 		}
 
@@ -137,7 +137,7 @@ func (s *SQLiteSuite) TestCurd1() {
 		model1.Timestamp = *carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
+		if err = db.Create(&model1).Error; err != nil {
 			panic(err)
 		}
 
@@ -170,7 +170,7 @@ func (s *SQLiteSuite) TestCurd1() {
 		model1.Timestamp = *carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
+		if err = db.Create(&model1).Error; err != nil {
 			panic(err)
 		}
 
@@ -212,7 +212,7 @@ func (s *SQLiteSuite) TestCurd2() {
 		var model1 SQLiteModel2
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
+		if err = db.Create(&model1).Error; err != nil {
 			panic(err)
 		}
 
@@ -246,7 +246,7 @@ func (s *SQLiteSuite) TestCurd2() {
 		model1.Timestamp = carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
+		if err = db.Create(&model1).Error; err != nil {
 			panic(err)
 		}
 
@@ -279,7 +279,7 @@ func (s *SQLiteSuite) TestCurd2() {
 		model1.Timestamp = carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
+		if err = db.Create(&model1).Error; err != nil {
 			panic(err)
 		}
 
@@ -312,7 +312,7 @@ func (s *SQLiteSuite) TestCurd2() {
 		model1.Timestamp = carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
+		if err = db.Create(&model1).Error; err != nil {
 			panic(err)
 		}
 
@@ -345,13 +345,14 @@ func (s *SQLiteSuite) TestCurd2() {
 		model1.Timestamp = carbon.NewTimestamp(c)
 
 		// create
-		if err := db.Create(&model1).Error; err != nil {
+		if err = db.Create(&model1).Error; err != nil {
 			panic(err)
 		}
 
 		// read
 		var model2 SQLiteModel2
 		db.Last(&model2)
+
 		data1, err1 := json.Marshal(&model2)
 		s.Nil(err1)
 		s.Equal(`{"carbon":"2020-08-05 13:14:15","date":"2020-08-05","time":"13:14:15","date_time":"2020-08-05 13:14:15","rfc3339_layout":"2020-08-05T13:14:15+08:00","iso8601_format":"2020-08-05T13:14:15+08:00","timestamp":1596604455}`, string(data1))

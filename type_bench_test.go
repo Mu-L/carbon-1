@@ -120,6 +120,14 @@ func BenchmarkBuiltinType_String(b *testing.B) {
 	}
 }
 
+func BenchmarkBuiltinType_GormDataType(b *testing.B) {
+	t := NewDateTime(Now())
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_ = t.GormDataType()
+	}
+}
+
 func BenchmarkCustomerType_Scan(b *testing.B) {
 	t := NewFormatType[iso8601Type](Parse("2020-08-05"))
 	b.ResetTimer()
@@ -141,8 +149,10 @@ func BenchmarkCustomerType_MarshalJSON(b *testing.B) {
 
 	c := Parse("2020-08-05 13:14:15.999999999")
 
-	model.Customer1 = *NewFormatType[iso8601Type](c)
-	model.Customer2 = *NewLayoutType[rfc3339Type](c)
+	model.Customer1 = *NewLayoutType[rfc3339Type](c)
+	model.Customer2 = *NewLayoutType[w3cType](c)
+	model.Customer3 = *NewFormatType[iso8601Type](c)
+	model.Customer4 = *NewFormatType[rssType](c)
 
 	model.CreatedAt = NewFormatType[iso8601Type](c)
 	model.UpdatedAt = NewLayoutType[rfc3339Type](c)
@@ -168,5 +178,13 @@ func BenchmarkCustomerType_String(b *testing.B) {
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		_ = t.String()
+	}
+}
+
+func BenchmarkCustomerType_GormDataType(b *testing.B) {
+	t := NewFormatType[iso8601Type](Parse("2020-08-05"))
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_ = t.GormDataType()
 	}
 }

@@ -6,14 +6,12 @@ import (
 )
 
 // Gregorian defines a Gregorian struct.
-// 定义 Gregorian 结构体
 type Gregorian struct {
 	Time  time.Time
 	Error error
 }
 
-// String implements Stringer interface.
-// 实现 Stringer 接口
+// String implements "Stringer" interface.
 func (g *Gregorian) String() string {
 	if g == nil {
 		return ""
